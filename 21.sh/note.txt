@@ -1,0 +1,33 @@
+cd - if not existe oldpwd                     1
+setenv hello=worl= && and repeat               1            
+unsetenv 
+
+
+
+normite libft also
+
+setenv in CSH
+
+
+
+
+9ad had 2 a wld l9...
+
+>< syntax error ...
+cd ~/
+
+echo >
+echo <
+
+
+ls & > 2
+ls &>2
+
+./a.out<file 
+
+echo $p
+| ls
+
+
+
+mini printf; (man stdarg ,,,)
