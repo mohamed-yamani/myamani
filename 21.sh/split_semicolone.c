@@ -13,16 +13,17 @@ char		**quotes_splite(char const *s, char c)
 	str = NULL;
 	if (!s)
 		return (NULL);
-	if (!(str = (char **)malloc(sizeof(char *) * (ft_countwords(s, c) + 1))))
+	int count = ft_countwords(s, c);
+	if (!(str = (char **)ft_memalloc(sizeof(char *) * (count + 1))))
 		return (NULL);
-
-	while (s[index])
+	int len = ft_strlen(s);
+	while (index < len)
 	{
         while (s[index] == c)
             index++;
 		start = index;
 		
-		while ((s[index] != c) && s[index])
+		while (index < len && (s[index] != c) && s[index])
 		{
 			if (s[index] == '\"')
 			{
@@ -33,7 +34,7 @@ char		**quotes_splite(char const *s, char c)
 			if (s[index] == '\'')
 			{
 				index++;
-				while (s[index] != '\'' && s[index])
+				while (index < len && s[index] != '\'' && s[index])
 				{	
 					if (s[index] == '\0')
 					{
@@ -48,7 +49,7 @@ char		**quotes_splite(char const *s, char c)
 		if (index > start)
 			str[words++] = ft_strsub(s, start, (index - start));
 	}
-	str[words] = NULL;
+	str[count] = NULL;
 	return (str);
 }
 

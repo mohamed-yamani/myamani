@@ -31,3 +31,16 @@ echo $p
 
 
 mini printf; (man stdarg ,,,)
+
+
+setenv $H               ls $G
+
+
+
+
+
+
+
+
+
+ls>>file    ls >> file

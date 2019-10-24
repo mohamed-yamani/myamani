@@ -9,7 +9,6 @@ int    replace_environnement(t_params *params, char *key, char *value)
     while (environnement)
     {
         env = environnement->content;
-
         if (!ft_strcmp(env->key, key))
         {
             free(env->value);
@@ -28,16 +27,17 @@ char    *egal_signe_env(char *str, char *key, char *value)
     char *str1;
 
     str1 = ft_strdup(str);
-    //free(str);
+                                                                //free(str); //new
     i = 0;
-    ft_putendl(str);ft_putnbr(i);ft_putendl("");
+    //ft_putendl(str);ft_putnbr(i);ft_putendl("");
     while (str1[i])
     {
         key[i] = str1[i];
         if (str1[i] == '=')
         {
             key[i] = '\0';
-            value = (char *)malloc(sizeof(char) * ft_strlen(str1) - ft_strlen(key));
+            if (!(value = (char *)malloc(sizeof(char) * ft_strlen(str1) - ft_strlen(key))))             //new4
+                return(NULL);
             j = -1;
             while(str1[i] && i++ && j++ > -2)
                 value[j] = str1[i];
@@ -45,6 +45,8 @@ char    *egal_signe_env(char *str, char *key, char *value)
         }
         i++;
     }
+    free(str1);
+    free(str);
     return (value);
 }
 
@@ -59,12 +61,17 @@ void    add_environnement(char *key, char *value, t_params *params)
     
     if (replace_environnement(params, key, value))
         return ;
+    
     env_lst = &params->environnement;
-    environnement = (t_environnement *)malloc(sizeof(t_environnement));
+    if (!(environnement = (t_environnement *)malloc(sizeof(t_environnement))))
+        return ;
     environnement->key = ft_strdup(key);
     environnement->value = NULL;
     if (value)
+    {
         environnement->value = ft_strdup(value);
+                                                                    // free(value); //new
+    }
     new = ft_listnew(environnement);
     ft_lstadd1(env_lst, new);
     params->envs++;

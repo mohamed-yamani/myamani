@@ -1,6 +1,4 @@
-
 -
->
 Makefile
 RDONLY.c
 a.out
@@ -10,11 +8,8 @@ ddddbase64_tst.c
 ddddddddls_wc.c
 environnement.c
 exam_tst.c
-f
+fiel
 file
-file1
-file2
-fle
 free.c
 ft_add_space.c
 ft_cd.c
@@ -22,15 +17,12 @@ ft_exit.c
 ft_initialisation.c
 ft_lstadd.c
 ft_lstnew.c
-h
 libft
-ls > file
 manage_shell.c
 memory.c
 myfile
 next
 note.txt
-options.c
 pipe.c
 put_all.c
 sh.c

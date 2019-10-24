@@ -20,9 +20,9 @@ char		*ft_strsub(char const *s, unsigned int start, size_t len)
 	i = 0;
 	if (!s)
 		return (0);
-	if (!(str = (char *)malloc(sizeof(char) * (len + 1))))
+	if (!(str = ft_memalloc(sizeof(char) * (len + 1))))    //new
 		return (0);
-	while (s[start] && i < len)
+	while (i < len && s[start])
 		str[i++] = s[start++];
 	str[i] = '\0';
 	return (str);

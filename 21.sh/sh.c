@@ -7,7 +7,9 @@ char    *ft_read(char *reads)
     char    *buf;
     char    *tmp;
 
-    buf = (char *)malloc(sizeof(char) * (BUF + 1));
+    //buf = (char *)malloc(sizeof(char) * (BUF + 1));
+    if(!(buf = ft_memalloc(sizeof(char) * (BUF + 1))))
+        return (0);
     reads = ft_strdup("");
     while (read(0, buf, BUF))
     {
@@ -16,8 +18,11 @@ char    *ft_read(char *reads)
             break;
         tmp = reads;
         reads = ft_strjoin(reads, buf);
-        free(tmp);
+                                                    //    free(buf);            //;;; file
+                                                                free(tmp);  //;;; file
     }
+    free(buf);            //;;; file
+                                                    //    free(buf);       ;;; file                           /// i write free in here;   
     return(reads);
 }
 
@@ -31,7 +36,9 @@ char    *del_startend_space(char *delete)
     int len;
     i = 0;
     int j = 0;
-    str = (char *)malloc(sizeof(char) * (len = ft_strlen(delete)));
+    //str = (char *)malloc(sizeof(char) * (len = ft_strlen(delete)));
+    if (!(str = ft_memalloc((len = ft_strlen(delete)))))
+        return (NULL);
     while (delete[i])
     {
         if (i == 0 && delete[i] == ' ')
@@ -122,7 +129,9 @@ char    *del_quotes(char *str)
 
     i = 0;
     j = 0;
-    ret = (char *)malloc(sizeof(char) * (ft_strlen(str) + 1));
+    //ret = (char *)malloc(sizeof(char) * (ft_strlen(str) + 1));
+    if  (!(ret = ft_memalloc(ft_strlen(str) + 1)))
+        return (0);
     while (str[i])
     {
         if (str[i] == '"' || str[i] == '\'')
@@ -141,7 +150,7 @@ char    *dollar_value(t_params *params, char *dollar)
     t_list *env;
     t_environnement *environnement;
     t_list *head;
-    char *value;
+    char    *value;
 
     env = params->environnement;
     head = env;
@@ -172,9 +181,10 @@ int     large_env(t_params *params)
     len1 = 0;
     envs = params->environnement;
     while (envs)
-    {
+    {   
         env = envs->content;
-        len1 = ft_strlen(env->value);
+        if (env->value)
+            len1 = ft_strlen(env->value);
         if (len1 > len)
             len = len1;
         envs =envs->next;
@@ -195,19 +205,20 @@ char    *checking_dollar(char *string, t_params *params)
     int     s;
     char       *value;
     int dq;
+    char *tmp;
 
     dq = 0;
     concatenation = ft_strdup("");
-    dollar = (char *)malloc(sizeof(char) * large_env(params));
-    str = (char *)malloc(sizeof(char) * ft_strlen(string));
+    //dollar = (char *)malloc(sizeof(char) * large_env(params));
+    if (!(dollar = ft_memalloc(sizeof(char) * large_env(params))))
+        return (0);
+    //str = (char *)malloc(sizeof(char) * ft_strlen(string));
+    if (!(str = ft_memalloc(sizeof(char) * ft_strlen(string) + 1)))
+        return (0);
     i = 0;
     s = 0;
     env = params->environnement;
 
-
-
-
-            printf("my error in here 1 \n");
     while (string[i])
     {
         if (string[i] == '\'' && !dq)
@@ -235,10 +246,16 @@ char    *checking_dollar(char *string, t_params *params)
                 d++;
             }
             dollar[d] = '\0';
-            concatenation = ft_strjoin(concatenation, str);//
+                                                                tmp = concatenation;
+            concatenation = ft_strjoin(tmp, str);//
+                                                                free(tmp);
+                                                                free(str);
             str = ft_strdup("");
             value = dollar_value(params, dollar);
-            concatenation = ft_strjoin(concatenation, value ? value : "");
+                                                                tmp = concatenation;
+            concatenation = ft_strjoin(tmp, value ? value : "");
+                                                                free(tmp);
+                                                                free(value);        //new5
             continue ;
         }
         if (string[i] == '"')
@@ -248,9 +265,12 @@ char    *checking_dollar(char *string, t_params *params)
         s++;
     }
     str[s] = 0;
-    concatenation = ft_strjoin(concatenation, str);
+    tmp = concatenation;
+    concatenation = ft_strjoin(tmp, str);
+                                                            free(tmp);
+    free(str);
     free(dollar);
-
+                                                            free(string);
     return (concatenation);
 }
 
@@ -281,7 +301,9 @@ int    get_source_fd(char *src, t_redirection *redirection)
     int sr;
 
     i = 0;
-    source = (char *)malloc(sizeof(char) * ft_strlen(src));
+    //source = (char *)malloc(sizeof(char) * ft_strlen(src));
+    if (!(source = ft_memalloc(sizeof(char) * ft_strlen(src))))
+        return (0);
 
     if (!ft_strcmp(src, "&>"))
         {
@@ -318,13 +340,16 @@ int     get_heredoc(t_redirection *redirection, t_cmds *tcmds)
         char    *tmp;
         char    *reads;
         int     len;
+        char *tmp1;
     
         if (redirection->file == NULL)
         {
             ft_putendl_fd("21sh: parse error near `\\n'", 2);
             return (0);
         }
-        buf = (char *)malloc(sizeof(char) * 351);
+        //buf = (char *)malloc(sizeof(char) * 351);
+        if (!(buf = ft_memalloc(sizeof(char) * 2048)))
+            return(0);
         reads = strdup("");
         ft_putstr_fd("heredoc> ", 1);
         while ((len = read(0, buf, 350)))
@@ -333,14 +358,18 @@ int     get_heredoc(t_redirection *redirection, t_cmds *tcmds)
             if (!ft_strcmp(buf, redirection->file))
                 break ;
             tmp = reads;
-            reads = ft_strjoin(reads, ft_strjoin(buf, "\n"));
+            tmp1 = ft_strjoin(buf, "\n");
+            reads = ft_strjoin(tmp, tmp1);
+            free(tmp1);
             free(tmp);
             ft_putstr_fd("heredoc> ", 1);
-            ft_bzero(buf, 350);
+            ft_bzero(buf, 2047);
         }
+        free(tcmds->heredoc);
         tcmds->heredoc = reads; 
-        free(redirection->file);
+        free(redirection->file); //// file ;;;;;;
         redirection->file = NULL;
+        free(buf);      //new
     }
     return (1);
 }
@@ -367,47 +396,51 @@ int     superior(char *arg, int j, char **args)
         return (0);
     if (check_superior(arg, j, args))
         return (1);
-    while (*arg)
+    int len = 0;
+    while (arg[len])
+        len++;
+    int i = 0;
+    while (i < len)
     {
-        if ((*arg) == '\'')
+        if ((arg[i]) == '\'')
         {
-            arg++;
-            while (*arg != '\'')
-                arg++;
-            arg++;
+            i++;
+            while (arg[i] != '\'')
+                i++;
+            i++;
             continue ;
         }
-        if ((*arg) == '"')
+        if ((arg[i]) == '"')
         {
-            arg++;
-            while (*arg != '"')
-                arg++;
-            arg++;
+            i++;
+            while (arg[i] != '"')
+                i++;
+            i++;
             continue ;
         }
-        if((*arg) == '>')
+        if((arg[i]) == '>')
         {
-            while (*arg == '>')
+            while (arg[i] == '>')
             {
-                arg++;
+                i++;
                 ret++;
             }
             if (ret > 2)
                 return(ret);
             ret = 0;
         }
-        if (*arg == '<')
+        if (arg[i] == '<')
         {
-            while (*arg == '<')
+            while (arg[i] == '<')
             {
-                arg++;
+                i++;
                 ret++;
             }
             if (ret > 2)
                 return(ret);
             ret = 0; 
         }
-        arg++;
+        i++;
     }
     return (0);
 }
@@ -462,6 +495,59 @@ int     ft_sep(char *arg)
     return (0);
 }
 
+int     ft_count_words(char **args)
+{
+    int len;
+
+    len = 0;
+    while (args[len])
+        len++;
+    return (len + 1);
+}
+
+int     check_missing(char **pipes, t_params *params)
+{
+    char **args;
+    int i;
+    int j;
+
+    i = 0;
+    while (pipes[i])
+    {
+
+        pipes[i] = tabs_to_spaces(pipes[i]);
+        args = quotes_splite(pipes[i], ' ');
+                                                                         //    free(pipes[i]); /// ;;;; file  //new
+        j = 0;
+        while(args[j])
+        {  
+           //           static int i; if (i == 1){exit(1);}; i++;
+            if (((ft_strchr(args[j], '>')  || ft_strchr(args[j], '<')) && args[j + 1] && (ft_strchr(args[j + 1], '<') || ft_strchr(args[j + 1], '>'))) || superior(args[j], j, args))
+            {
+                free2d(args);
+                free2d(pipes);
+                
+                //free(params->semicolone);
+                
+
+                //  free(args[j]);
+                
+                //  free(args);
+                //                 //free(pipes[i]);
+                // free(pipes);
+                //ft_free_cmds(*lst);
+                ft_putendl_fd("Missing name for redirect.", 2);
+                return (0);
+            }
+            j++;
+            
+        }
+        free2d(args);
+        i++;
+    }
+    return (1);
+}
+
 int    ft_getargs(char **pipes, t_list **lst, t_params *params)
 {
     int i;
@@ -473,6 +559,7 @@ int    ft_getargs(char **pipes, t_list **lst, t_params *params)
     t_list          *list_redi;
     int             red;
     int             d;
+    char            *tmp;
 
 
     i = 0;
@@ -485,30 +572,49 @@ int    ft_getargs(char **pipes, t_list **lst, t_params *params)
     a = 0;
     redirections = NULL;
     args = NULL;
-
+    if (!(check_missing(pipes, params)))
+        return (0);
     while (pipes[i])
     {
-        pipes[i] = tabs_to_spaces(pipes[i]);
-        args = quotes_splite(pipes[i], ' ');
 
+        // pipes[i] = tabs_to_spaces(pipes[i]);             //free >>>
+        args = quotes_splite(pipes[i], ' ');
+                                                                             free(pipes[i]); /// ;;;; file  //new
         j = 0;
         k = -4;
-        argv = (char **)malloc(sizeof(char *) * 10);
-        tcmds = (t_cmds *)malloc(sizeof(t_cmds));
+
+        if (!(argv = (char **)malloc(sizeof(char *) * ft_count_words(args))))                        /// number exact ... here;  //new4
+            return (0);
+        if (!(tcmds = (t_cmds *)malloc(sizeof(t_cmds))))
+            return (0);
         tcmds->heredoc = NULL;
         red = 0;
+                                //static int i; if (i == 1){exit(1);}; i++;
         while(args[j])
-        {   
+        {  
+
             if (args[j][0] == '~' && (!args[j][1] || args[j][1] == '/'))
+            {
+                tmp = args[j];   
                 args[j] = get_home(params, args[j]);
+                free(tmp);
+            }
+
+           
+           // static int i; if (i == 1){exit(1);}; i++;
             if (((ft_strchr(args[j], '>')  || ft_strchr(args[j], '<')) && args[j + 1] && (ft_strchr(args[j + 1], '<') || ft_strchr(args[j + 1], '>'))) || superior(args[j], j, args))
             {
+                free(args[j]);
+                
+                free(args);
+                                //free(pipes[i]);
+                free(pipes);
+                //ft_free_cmds(*lst);
                 ft_putendl_fd("Missing name for redirect.", 2);
                 return (0);
             }
-            // ft_putnbr(ft_sep(args[j]));ft_putendl(args[j]);
-            // sleep(2);
-            
+
+             
             if (ft_sep(args[j]))//if ((ft_strchr(args[j], '>') || ft_strchr(args[j], '<')) && ft_sep(args[j]))
             {
                 redirection = (t_redirection *)malloc(sizeof(t_redirection));
@@ -524,7 +630,10 @@ int    ft_getargs(char **pipes, t_list **lst, t_params *params)
                 if (get_heredoc(redirection, tcmds) == 0)
                     return (0);
                 if (args[j + 1])
+                {
+                    free(args[j]);
                     j++;
+                }
                 k = j;
                 list_redi = ft_listnew(redirection);
                 ft_lstadd1(&redirections, list_redi);
@@ -538,22 +647,31 @@ int    ft_getargs(char **pipes, t_list **lst, t_params *params)
                 argv[a] = args[j];
                 a++;
             }
-            // ft_putstr("<<< ");
-            // ft_putstr(args[j]);
-            // ft_putendl(" >>>");
-            // sleep(1);
             j++;
-        }   
+        }
+
         argv[a] = NULL;
         tcmds->argv = argv;
         tcmds->i = i;
         tcmds->redirections = redirections;
         redirections = NULL;        
         a = 0;
+
         list = ft_listnew(tcmds);    
         ft_lstadd1(lst, list);
+
+                                        //exit(1);
+        free(args);
         i++;
+
     }
+
+                                                                                        free(pipes); //     ;;;; file
+                                                                                        //free(args);
+                                            
+
+    //params->args = args;
+    i = 0;
     return (1);
 }
 
@@ -562,16 +680,11 @@ int        ft_separation(t_list **lst, char *read, t_params *params)
     char **pipes;
 
     pipes = quotes_splite(read, '|');
-    // char **tmp;
-    // tmp = pipes;
-    // int i = 0;
-    // while (tmp[i])
-    // {
-    //     ft_putstr(">>>");ft_putendl(tmp[i]);ft_putstr("<<<");
-    //     i++;
-    // } 
+    free(read);
     if (ft_getargs(pipes, lst, params) == 0)
         return (0);
+    // ft_free_lst(*lst);
+    // exit(1);
     return (1);
 }
 
@@ -587,6 +700,7 @@ int         pipes_num(char *read)
     {
         if (read[i] == '|')
         {
+            free(read);
             ft_putendl("bash: syntax error near unexpected token `|'");
             return (0);
         }
@@ -615,7 +729,7 @@ int         pipes_num(char *read)
                 max++;
                 if (max == 2)
                 {
-                    free(read);
+                                                                                            free(read);////  ;;; free //new1
                     ft_putendl_fd("Invalid null command.", 2);
                     return (0);
                 }
@@ -635,9 +749,51 @@ int        handler_reads(char *read, t_list **lst , t_params *params)
     if ((read = ft_add_space(read)))
     {
         if (ft_separation(lst, read, params) == 0)
+        {
             return (0);
+        }
     }
     return (1);
+}
+
+int         skip_semi(char *semi)
+{
+    int i;
+    int len;
+
+    i = 0;
+    while (semi[i])
+    {  
+        while (semi[i] && (semi[i] == ' ' || semi[i] == '\t'))
+            i++;
+        if (semi[i] == '\0' || semi[i] == ';')
+            return (0);
+        else
+            break;
+        //i++;
+    }
+    return(1);
+}
+
+int       errors_semicolone(char **semicolone, char *read)
+{
+    int i;
+
+    i = 0;
+    while(semicolone[i])
+    {
+        ft_putendl(semicolone[i]);
+        if (skip_semi(semicolone[i]) < 1)
+        {
+                ft_putendl_fd("21sh : syntax error near unexpected token `;'", 2);
+                                                                                 free2d(semicolone);                 // new;
+                                                                                 free(read);
+                                                                                 semicolone = NULL;
+                return (0);
+        }
+        i++;
+    }
+    return(1);
 }
 
 int        splite_semi(char *read, t_list **lst, t_params *params)
@@ -646,18 +802,68 @@ int        splite_semi(char *read, t_list **lst, t_params *params)
     i = 0;
     char **semicolone = NULL;
 
-    params->semicolones = NULL;
+    //params->semicolones = NULL;
     semicolone = quotes_splite(read, ';');
+
+
+    if (!errors_semicolone(semicolone, read))
+       return(0);
+    //params->sems1 = i;
     while (semicolone[i])
     {
+        //params->sems2 = i;
         if (handler_reads(semicolone[i], lst, params) == 0)
+        {
+            free(read);
+            free(semicolone);
             return (0);
-        
+        }
+       // exit (1);                                   // i am here for free tsts
         params->lst = *lst;
-        manage_sh1(params);
+        manage_sh(params);
+
+                                                            //free_params(params);                           ;;;;;;;
+                                                        // free(semicolone[i]);
+        //semicolone[i] = NULL;
         i++;
     }
+            //ft_putstr("\n - semi1 is : ");ft_putnbr(params->sems1);   ft_putstr(" *** - semi2 is : ");ft_putnbr(params->sems2);ft_putendl_fd("\n", 1);
+                    //free2d(semicolone);                                                  
+                                                                            free(semicolone); //for tst segfault ;;;;;;
+                                    //semicolone = NULL;
     return (1);          
+}
+
+int     check_semicolone(char *semicolones)
+{
+    int i;
+    int s;
+    char q;
+
+    i = 0;
+    while (semicolones[i])
+    {
+        while (semicolones[i] == ' ' || semicolones[i] == '\t')
+            i++;
+        if (semicolones[i] == '\'' || semicolones[i] == '"')
+        {
+            q = semicolones[i];
+            i++;
+            while (semicolones[i] != q)
+                i++;
+            i++;
+            continue ;
+        }
+        if (semicolones[i] && semicolones[i + 1] && semicolones[i] == ';' && semicolones[i + 1] == ';')
+        {
+                ft_putendl_fd("21:  : syntax error near unexpected token `;;'", 2);
+                                                                                                free(semicolones);   //;;; file //new
+                                                                                                semicolones = NULL;             //new
+                return (0);
+        }
+        i++;
+    }
+    return(1);
 }
 
 void    sh(t_params *params)
@@ -667,15 +873,26 @@ void    sh(t_params *params)
    
     lst = NULL;
     read = NULL;
-    params->semicolones = NULL;
     while ("21sh")
     {
         ft_putstr_fd("$> ", 1);
         read = ft_read(read);
+        if (!check_semicolone(read))
+            continue ;
         if (splite_semi(read, &lst, params) == 0)
             continue ;
-        free(lst);
-        free(read);                                             //i make free in here;
+
+
+    //    ft_putstr("\n - semi1 is : ");ft_putnbr(params->sems1);   ft_putstr(" *** - semi2 is : ");ft_putnbr(params->sems2);ft_putendl_fd("\n", 1);
+                                                                        // if (params->sems1 == params->sems2 + 1)
+                                                                              free(read);           //new
+                                                                              read = NULL;          //new
+        //free_params(params);
+        
+        //ft_free_env(params->environnement);
+        //free(read); 
+                                             ft_free_lst(params->lst);        //new                               //i make free in here;
+                                             //free(lst);                       //new 
         lst = NULL;
     }
 }
@@ -685,9 +902,13 @@ int		main(int ac, char **av, char **env)
     t_params *params;
 
     fprinf_fd = fopen("/dev/ttys001", "a+");
-    params = (t_params*)malloc(sizeof(t_params));
+    if (!(params = (t_params*)malloc(sizeof(t_params))))
+        return(0);
+    //            params = ft_memalloc(sizeof(params));
     params->envs = 0;
     get_environnement(params, env);
+
+    /// to here is free ;
     sh(params);
     (void)ac;
     (void)av;

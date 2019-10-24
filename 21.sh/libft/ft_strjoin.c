@@ -18,7 +18,7 @@ char			*ft_strjoin(char const *s1, char const *s2)
 
 	if (!s1 || !s2)
 		return (0);
-	str = (char*)malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2) + 1));
+	str = (char*)ft_memalloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2) + 1));
 	if (str == 0)
 		return (0);
 	ft_strcpy(str, s1);

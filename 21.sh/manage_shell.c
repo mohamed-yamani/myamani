@@ -27,6 +27,14 @@ void    ft_setenv(char **cmds, t_params *params)
 	add_environnement(cmds[1], cmds[2],  params); 
 }
 
+void	unsetenv_free(t_list *tmp)
+{
+	free(((t_environnement *)tmp->content)->key);
+	free(((t_environnement *)tmp->content)->value);
+	free(((t_environnement *)tmp->content));
+	free(tmp);
+}
+
 void    ft_unsetenv(char **cmds, t_params *params)
 {
 	t_list          *environnement;
@@ -38,8 +46,10 @@ void    ft_unsetenv(char **cmds, t_params *params)
 	env = environnement->content;
 	if (!ft_strcmp(env->key, cmds[1]))
 	{
+		tmp = environnement;
 		environnement = environnement->next;
 		params->environnement = environnement;
+		unsetenv_free(tmp);
 		return;
 	}
 	while (environnement)
@@ -51,7 +61,7 @@ void    ft_unsetenv(char **cmds, t_params *params)
 		{
 			tmp = environnement->next;
 			environnement->next = environnement->next->next;
-			free(tmp);
+			unsetenv_free(tmp);
 		}
 		environnement = environnement->next;
 	}
@@ -62,6 +72,8 @@ void    ft_echo(char **arr)
 	int i;
 
 	i = 1;
+	if (arr[1][0] == '-' && arr[1][1] == 'n' && !arr[1][2])
+		i++;
 	while (arr[i])
 	{
 		if (arr[i])
@@ -70,7 +82,8 @@ void    ft_echo(char **arr)
 			ft_putchar_fd(' ', 1);
 		i++;
 	}
-	ft_putendl_fd("", 1);
+	if (arr[1][0] != '-' || arr[1][1] != 'n' || arr[1][2])
+		ft_putendl_fd("", 1);
 }
 
 int     manage_shell(t_cmds  *cmds, t_params *params)
@@ -107,7 +120,9 @@ char    *remove_quotes(char *string)
 	backslash = 0;
 	i = 0;
 	j = 0;
-	tmp = (char *)malloc(sizeof(char) * (ft_strlen(string) + 1));
+	//tmp = (char *)malloc(sizeof(char) * (ft_strlen(string) + 1));
+	if (!(tmp = ft_memalloc(ft_strlen(string) + 1)))
+		return (NULL);
 	while (string[i])
 	{
 		if (string[i] == '"' && string[i - 1] != '\\')
@@ -179,7 +194,7 @@ char    *remove_quotes(char *string)
 		}
 	}
 	tmp[j] = '\0';
-	free(string);
+																			free(string);            ;;; //new
 	//ft_putendl("\nremove_quotes end");
 	return (tmp);
 }
@@ -198,19 +213,20 @@ char		*get_path(t_environnement *args, char *rd)
 			path = ft_strjoin(paths[i], rd);
 			if (!access(path, F_OK))
 			{
-				//free(rd);
+																					//free(rd); //new1
 				rd = NULL;
-				//free2d(paths);
+																					free2d(paths);   ;;;; //file //new1
 				return (path);
 			}
-			//free(path);
+																					free(path);		;;;; //file //new1
 			path = NULL;
 			i++;
 		}
-		//free2d(paths);
+																					free2d(paths);	;;;; //file // new1
 		//paths = NULL;
 		path = NULL;
 	}
+	//free2d(paths);
 	return (NULL);
 }
 
@@ -230,17 +246,21 @@ char    *get_cmd(char *argv, t_params *params)
 		environnement = environnements->content;
 		if ((ret = get_path(environnement, path)))
 		{
+																			free(path);		//file ;; //new1
 			return (ret);
 		}
 		if (!access(argv, F_OK) && ft_strchr(argv, '/'))
 		{
-			free(path);
+																			free(path);		//file ;;	//new1
 			path = NULL;
 			return (ft_strdup(argv));
 		}
 		//ft_putendl(environnement->key);
 		environnements = environnements->next;
 	}
+	if (argv[0] != '\0')
+		free(path);
+																								//	free(argv); //new3    sig in error cmd
 	return (NULL);
 }
 
@@ -253,14 +273,15 @@ char    **get_tab_environnement(t_params *params)
 	int  i;
 
 	i = 0;
-	tab = (char **)malloc(sizeof(char *) * (params->envs + 1));
+	if (!(tab = (char **)malloc(sizeof(char *) * (params->envs + 1))))
+		return (NULL);
 	environnements = params->environnement;
 	while (environnements)
 	{
 		env = environnements->content;
 		tmp = ft_strjoin(env->key, "=");
 		tab[i] = ft_strjoin(tmp, env->value);
-		free(tmp);
+																					free(tmp);	//new1
 		environnements = environnements->next;
 		i++;
 	}
@@ -288,7 +309,7 @@ t_cmds    *remove_quotes_2d(t_cmds *cmds)
 	return (cmds);
 }
 
-int 	manage_sh1(t_params *params)
+int 	manage_sh(t_params *params)
 {
 	t_list *lst;
 	t_cmds  *cmds;
@@ -303,7 +324,7 @@ int 	manage_sh1(t_params *params)
 
 	//sleep(1);
 	// ft_putendl("\n");
-	// put_tst(params->lst);
+	//put_tst(params->lst);
 	// ft_putendl("\n");
 	lst = params->lst;
 	//int     std[3] = {dup(0), dup(1), dup(2)};
@@ -345,7 +366,6 @@ int 	manage_sh1(t_params *params)
 			redirection = redirections->content;
 			if (redirection->file)
 			{
-				//( "%d%s,%c"1, fg, df, gd, fg)
 				if ((fd = open(redirection->file, redirection->type , 0644)) > 0) 
 				{
 					dup2(fd, redirection->source_fd);
@@ -367,7 +387,8 @@ int 	manage_sh1(t_params *params)
 					ft_putendl_fd(": Permission denied", 2);
 					//err = 1;
 				}
-			}
+																								free(redirection->file);  ;; //new
+			} 
 			else if (!redirection->close)
 			{
 				if (dup2(redirection->destination_fd, redirection->source_fd) == -1 && (err = 1))
@@ -419,16 +440,26 @@ int 	manage_sh1(t_params *params)
 					close(pipefd[0]);
 					execve_child(cmds->argv, params->environnement_tab, path);
 				}
+																						 free2d(params->environnement_tab); //new1
 			}
 			else if (cmds->argv[0])
 			{
 				ft_putstr_fd(cmds->argv[0], 2);
 				ft_putendl_fd(": command not found", 2);
 			}
+																						 free(path);  ;;;; //file //new1																			 
 		}
 		(lst) = (lst)->next;
 		prev++;
 	}
+																							//free(params->args);		//new1	
+																							//free(params->semicolone);
+																						
+																							
+																							//free_params1(params);
+																							//free_args(params->lst);
+																						//free_lst(params->lst);
+																						//free(params->reads);
 	dup2(std[1], 1);
 	close(std[1]);
 	dup2(std[0], 0);

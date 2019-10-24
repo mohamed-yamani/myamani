@@ -47,7 +47,97 @@ char    *save_quotes(char *reads, char *tmp, int i, int j)
     return (quotes);
 }
 
+int     len_for_spaces(char *reads)
+{
+    int i;
+    int q;
+    int k = 0;
+    int len = 1;
 
+    i = 0;
+    while (reads[i])
+    {
+        if (reads[i] == '"' || reads[i] == '\'')
+        {
+            q = reads[i];
+            i++;
+            while(reads[i] != q)
+                i++;
+            i++;
+            continue ;
+        }
+        if (reads[i] == '&' && reads[i + 1] && reads[i + 1] == ' ')
+        {
+            i++;
+            while (reads[i] == ' ')
+                i++;
+            if (reads[i] && reads[i] != '>' && reads[i] != '<' && reads[i] != '-')
+                i--;
+            continue ;
+        }
+        if ((reads[i] == '>' || reads[i] == '<') && reads[i + 1] && reads[i + 1] == ' ')
+        {
+            i++;
+            while (reads[i] == ' ')
+                i++;
+            if (reads[i] != '&')
+                i--;
+            continue ;
+        }
+
+        if (ft_isdigit(reads[i]) && reads[i - 1] == ' ')
+        {
+            k = i;
+            int x = 0;
+            while(reads[i])
+            {
+                if (reads[i] == '>')
+                {
+                    i++;
+                    x = 0;
+                    break;
+                }
+                if (!ft_isdigit(reads[i]) || !reads[i + 1] /*|| reads[i] != '>'*/)
+                {
+                    i = k;
+                    x = 0;
+                    break;
+                }
+                x++;
+                i++;
+            }
+        }
+        if (ft_isdigit(reads[i]) && reads[i - 1] == ' ')
+        {
+            k = i;
+            int x = 0;
+            while(reads[i])
+            {
+                if (reads[i] == '<')
+                {
+                    i++;
+                    break;
+                }
+                if (!ft_isdigit(reads[i]) || !reads[i + 1] /*|| reads[i] != '>'*/)
+                {
+                    i = k;
+                    x = 0;
+                    break;
+                }
+                x++;
+                i++;
+            }
+        }
+        if (i > 0 && ((reads[i - 1] == '|' && reads[i] != ' ') || (reads[i - 1] == '>' && reads[i] != ' ' && reads[i] != '>' && reads[i] != '&') || (reads[i - 1] == '<' && reads[i] != ' ' && reads[i] != '<' && reads[i] != '&') || (reads[i - 1] == '&' && (reads[i] != '>' && reads[i] != '<') && reads[i] != '-')) /*&& !q && !dq && reads[i] != '"' && reads[i] != '\''*/)
+            len++;
+        if (reads[i + 1] && ((reads[i + 1] == '|' && reads[i] != ' ') || (reads[i + 1] == '>' && reads[i] != ' ' && reads[i] != '>' && reads[i] != '&') || (reads[i + 1] == '<' && reads[i] != ' ' && reads[i] != '<' && reads[i] != '&') || (reads[i + 1] == '&' && (reads[i] != '>' && reads[i] != '<') && reads[i] != '-')) /*&& !q && !dq && !ft_isdigit(reads[i])*/)
+            len++;
+        i++;
+        while (reads[i] && reads[i] == ' ' && reads[i + 1] == ' ')
+            i++;
+    }
+    return (len);
+}
 
 char    *ft_add_space(char *reads)
 {
@@ -56,13 +146,16 @@ char    *ft_add_space(char *reads)
     int k;
     char *tmp;
     char *tmp1;
+    char *tmp2;
     char q;
 
     i = 0;
     j = 0;
     k = 0;
+    int len = ft_strlen(reads);
     //ft_putendl(" a file is here ft_add_space ");
-    tmp = (char *)malloc(sizeof(char) * ft_strlen(reads));
+    
+    tmp = (char *)ft_memalloc(sizeof(char) * len + len_for_spaces(reads));
 //    tmp1 = (char *)malloc(sizeof(char) * 255);
 
     while (reads[i])
@@ -118,13 +211,14 @@ char    *ft_add_space(char *reads)
 
                 if (reads[i] == '>')
                 {
-                    // ft_putendl(" tmp1 is ... ");
-                    // ft_putendl(tmp1);
                     i++;
                     j = j+x+1;
                     tmp1[x + 1] = '\0';
-                    x = 0;
+                    x = 0;//
+                    tmp2 = tmp;
                     tmp = ft_strjoin(tmp, tmp1);
+                    // free(tmp2);
+                    // free(tmp1);
                     break;
                 }
                 if (!ft_isdigit(reads[i]) || !reads[i + 1] /*|| reads[i] != '>'*/)
@@ -185,6 +279,7 @@ char    *ft_add_space(char *reads)
             i++;
     }
     tmp[j] = '\0';
+    printf("tmp = |%s| j == %d, len = %d, len_of_spaces = %d\n", tmp, j, len, len_for_spaces(reads));
     // printf("ft_add space ** reads adress-> %p > value -> '%s'\n", reads, reads);
     // printf("ft_add space ** tmp adress-> %p > value -> '%s'\n", tmp, tmp);
     free(reads);
